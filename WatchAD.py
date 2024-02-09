@@ -65,8 +65,7 @@ def start():
     logger.info("Starting the WatchAD detect engine ...")
 
     rsp = subprocess.call("supervisord -c {root_dir}/supervisor.conf".format(root_dir=project_dir),
-                          shell=True,
-                          env={"WATCHAD_ENGINE_DIR": project_dir, "WATCHAD_ENGINE_NUM": str(ENGINE_PROCESS_NUM)})
+                          shell=False, env={"WATCHAD_ENGINE_DIR": project_dir, "WATCHAD_ENGINE_NUM": str(ENGINE_PROCESS_NUM)})
     if rsp == 0:
         logger.info("Started!")
     else:
@@ -77,14 +76,14 @@ def stop():
     logger.info("Stopping the WatchAD detect engine ...")
 
     stop_rsp = subprocess.call("supervisorctl -c {root_dir}/supervisor.conf stop all".format(root_dir=project_dir),
-                               shell=True, env={"WATCHAD_ENGINE_DIR": project_dir,
+                               shell=False, env={"WATCHAD_ENGINE_DIR": project_dir,
                                                 "WATCHAD_ENGINE_NUM": str(ENGINE_PROCESS_NUM)})
     if stop_rsp == 0:
         logger.info("Stopped detection processes.")
     else:
         logger.error("Stop failed.")
     shutdown_rsp = subprocess.call("supervisorctl -c {root_dir}/supervisor.conf shutdown".format(root_dir=project_dir),
-                                   shell=True, env={"WATCHAD_ENGINE_DIR": project_dir,
+                                   shell=False, env={"WATCHAD_ENGINE_DIR": project_dir,
                                                     "WATCHAD_ENGINE_NUM": str(ENGINE_PROCESS_NUM)})
 
     if shutdown_rsp == 0:
@@ -100,8 +99,7 @@ def restart():
 
 def status():
     subprocess.call("supervisorctl -c {root_dir}/supervisor.conf status".format(root_dir=project_dir),
-                    shell=True,
-                    env={"WATCHAD_ENGINE_DIR": project_dir})
+                    shell=False, env={"WATCHAD_ENGINE_DIR": project_dir})
 
 
 def usage():
