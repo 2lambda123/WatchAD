@@ -26,6 +26,23 @@ ENGINE_PROCESS_NUM = 5
 
 
 def install(domain, server, user, password):
+    """Install WatchAD on the server.
+    Parameters:
+        - domain (str): Domain name to be installed.
+        - server (str): Server name to be installed.
+        - user (str): User name for authentication.
+        - password (str): Password for authentication.
+    Returns:
+        - None: No return value.
+    Processing Logic:
+        - Initialize ES index template.
+        - Initialize LDAP configuration.
+        - Get all domain controller names.
+        - Initialize default settings.
+        - Initialize sensitive groups.
+        - Set learning end time.
+        - Set scheduled tasks."""
+    
     logger.info("Install the WatchAD ...")
     # 初始化ES索引模板
     init_es_template()
@@ -44,6 +61,23 @@ def install(domain, server, user, password):
 
 
 def check() -> bool:
+    """Checks the WatchAD environment for proper configuration and connectivity.
+    Parameters:
+        - None
+    Returns:
+        - bool: True if all checks pass, False otherwise.
+    Processing Logic:
+        - Logs a message to indicate that the WatchAD environment is being checked.
+        - Calls the check_es_template() function to check the installation status of the ES template.
+        - If the check fails, returns False.
+        - Calls the check_mongo_connection() function to check the database connection.
+        - If the check fails, returns False.
+        - Calls the check_mq_connection() function to check the message queue connection.
+        - If the check fails, returns False.
+        - Logs a message to indicate that the WatchAD environment has passed all checks.
+        - Logs a message to indicate that the WatchAD environment has been successfully checked.
+        - Returns True."""
+    
     logger.info("Checking the WatchAD environment ...")
     # 检查ES模板安装状态
     if not check_es_template():
@@ -60,6 +94,8 @@ def check() -> bool:
 
 
 def start():
+    """"""
+    
     if not check():
         sys.exit(-1)
     logger.info("Starting the WatchAD detect engine ...")
@@ -73,6 +109,15 @@ def start():
 
 
 def stop():
+    """This function stops the WatchAD detect engine and shuts down WatchAD.
+    Parameters:
+        - None
+    Returns:
+        - None
+    Processing Logic:
+        - Stops detection processes.
+        - Shuts down WatchAD."""
+    
     logger.info("Stopping the WatchAD detect engine ...")
 
     stop_rsp = subprocess.call("supervisorctl -c {root_dir}/supervisor.conf stop all".format(root_dir=project_dir),
@@ -93,16 +138,37 @@ def stop():
 
 
 def restart():
+    """Restarts the process by stopping and then starting it again.
+    Parameters:
+        None
+    Returns:
+        None
+    Processing Logic:
+        - Stops the process.
+        - Starts the process."""
+    
     stop()
     start()
 
 
 def status():
+    """"Runs the supervisorctl command to check the status of the project's supervisor processes."
+    Parameters:
+        - project_dir (str): The root directory of the project.
+    Returns:
+        - None: This function does not return anything.
+    Processing Logic:
+        - Runs the supervisorctl command.
+        - Uses the project_dir variable to specify the project's root directory.
+        - Sets the WATCHAD_ENGINE_DIR environment variable to the project_dir value."""
+    
     subprocess.call("supervisorctl -c {root_dir}/supervisor.conf status".format(root_dir=project_dir),
                     shell=False, env={"WATCHAD_ENGINE_DIR": project_dir})
 
 
 def usage():
+    """"""
+    
     s = StringIO()
     s.write("Usage:  WatchAD.py <options> [settings]")
     s.seek(0)
@@ -110,6 +176,33 @@ def usage():
 
 
 def parse_option():
+    """Function: parse_option()
+    Parameters:
+        - None
+    Returns:
+        - parser (optparse.OptionParser): A parser object that contains all the options and arguments.
+    Processing Logic:
+        - Creates an optparse.OptionParser object.
+        - Adds options for installing, specifying domain, LDAP server, domain user, domain password, checking environment status, starting, restarting, stopping, and checking status.
+        - Returns the parser object.
+    Example:
+        parser = parse_option()
+        options, args = parser.parse_args()
+        if options.install:
+            # install WatchAD
+        elif options.check:
+            # check environment status
+        elif options.start:
+            # start WatchAD detection engine
+        elif options.restart:
+            # restart WatchAD detection engine
+        elif options.stop:
+            # stop WatchAD detection engine and shutdown supervisor
+        elif options.status:
+            # show processes status using supervisor
+        else:
+            # display usage information"""
+    
     parser = optparse.OptionParser(usage=usage())
     parser.add_option("--install", action="store_true", dest="install", help="Initial install WatchAD.")
     parser.add_option("-d", "--domain", action="store", dest="domain", help="A FQDN domain name. e.g: corp.360.cn")
@@ -129,6 +222,39 @@ def parse_option():
 
 
 def main():
+    """Function:
+    def main():
+        Main function for running WatchAD.
+        Parameters:
+            - None
+        Returns:
+            - None
+        Processing Logic:
+            - Parses command line options.
+            - Checks for correct number of arguments.
+            - Executes specified action.
+        parser = parse_option()
+        if len(sys.argv) < 2:
+            logger.error("WatchAD must run with an action.")
+            parser.print_help()
+            sys.exit(1)
+        options, args = parser.parse_args()
+        if options.install:
+            if not options.domain or not options.server or not options.username or not options.password:
+                logger.error("WatchAD install action must provide domain, server, user and password params.")
+                sys.exit(1)
+            install(domain=options.domain, server=options.server, user=options.username, password=options.password)
+        elif options.check:
+            check()
+        elif options.start:
+            start()
+        elif options.restart:
+            restart()
+        elif options.stop:
+            stop()
+        elif options.status:
+            status()"""
+    
     parser = parse_option()
     if len(sys.argv) < 2:
         logger.error("WatchAD must run with an action.")
